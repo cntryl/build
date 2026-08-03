@@ -58,7 +58,8 @@ RUN case "${TARGETARCH:-amd64}" in \
 # Install the stable Rust toolchain and the CI components used by Rust projects.
 RUN mkdir -p /opt/rust \
     && curl --fail --location --retry 3 https://sh.rustup.rs | sh -s -- -y --profile minimal --default-toolchain stable \
-    && rustup component add clippy rustfmt
+    && rustup component add clippy rustfmt \
+    && rustup update stable
 
 # Install the .NET SDK for the selected release channel.
 RUN curl --fail --location --retry 3 --output /tmp/dotnet-install.sh \
