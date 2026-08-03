@@ -35,6 +35,7 @@ RUN apt-get update \
         gzip \
         unzip \
         gosu \
+        sudo \
         libicu74 \
         docker.io \
     && rm -rf /var/lib/apt/lists/*
@@ -105,10 +106,15 @@ COPY entrypoint.sh /entrypoint.sh
 RUN chmod 0755 /entrypoint.sh
 
 # GitHub's runner refuses to start as root. Keep image bootstrap-capable, but
-# run the actual runner process as a dedicated non-root user.
+# run the actual runner process as a dedicated non-root user. Playwright's
+# --with-deps invokes sudo for apt-get; this runner already has Docker-socket
+# host access, so non-interactive sudo avoids a password prompt.
 RUN useradd --create-home --home-dir "${RUNNER_HOME}" --shell /bin/bash runner \
     && mkdir -p "${RUNNER_HOME}/_work" \
-    && chown -R runner:runner "${RUNNER_HOME}" /opt/rust "${PLAYWRIGHT_BROWSERS_PATH}"
+    && chown -R runner:runner "${RUNNER_HOME}" /opt/rust "${PLAYWRIGHT_BROWSERS_PATH}" \
+    && printf '%s\n' 'runner ALL=(root) NOPASSWD: ALL' > /etc/sudoers.d/runner \
+    && chmod 0440 /etc/sudoers.d/runner \
+    && visudo --check --file=/etc/sudoers.d/runner
 
 WORKDIR ${RUNNER_HOME}
 # Entrypoint bootstraps socket permissions as root, then drops to `runner`.
