@@ -3,7 +3,7 @@ name: action-runner
 services:
   runner:
     deploy:
-      replicas: 3
+      replicas: 2
     build:
       context: .
       args:

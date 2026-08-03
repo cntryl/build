@@ -5,7 +5,10 @@ ARG RUNNER_VERSION=2.328.0
 ARG DOTNET_CHANNEL=10.0
 ARG GO_VERSION=1.26.5
 ARG NODE_VERSION=26.5.1
+ARG PLAYWRIGHT_VERSION=1.62.1
 
+# Keep Rust's default/test builds below the memory ceiling of the runner.
+# A single codegen unit is unnecessarily peak-memory-heavy for CI.
 ENV DEBIAN_FRONTEND=noninteractive \
     RUNNER_HOME=/runner \
     CARGO_HOME=/opt/rust/cargo \
@@ -13,6 +16,11 @@ ENV DEBIAN_FRONTEND=noninteractive \
     DOTNET_ROOT=/usr/share/dotnet \
     GOROOT=/usr/local/go \
     NODE_HOME=/usr/local/node \
+    CARGO_BUILD_JOBS=2 \
+    CARGO_PROFILE_DEV_CODEGEN_UNITS=16 \
+    CARGO_PROFILE_DEV_DEBUG=0 \
+    CARGO_PROFILE_DEV_OPT_LEVEL=0 \
+    PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers \
     PATH=/opt/rust/cargo/bin:/usr/local/go/bin:/usr/local/node/bin:${PATH}
 
 RUN apt-get update \
@@ -86,6 +94,13 @@ RUN case "${TARGETARCH:-amd64}" in \
     && tar -xzf /tmp/node.tar.gz --strip-components=1 -C "${NODE_HOME}" \
     && rm /tmp/node.tar.gz
 
+# Keep browser-based CI self-contained.  The shared browser path is readable
+# by the non-root runner user and matches Playwright's cache contract.
+RUN mkdir -p "${PLAYWRIGHT_BROWSERS_PATH}" \
+    && npm install --global --omit=dev "@playwright/test@${PLAYWRIGHT_VERSION}" \
+    && playwright install --with-deps chromium \
+    && chmod -R a+rX "${PLAYWRIGHT_BROWSERS_PATH}"
+
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod 0755 /entrypoint.sh
 
@@ -93,7 +108,7 @@ RUN chmod 0755 /entrypoint.sh
 # run the actual runner process as a dedicated non-root user.
 RUN useradd --create-home --home-dir "${RUNNER_HOME}" --shell /bin/bash runner \
     && mkdir -p "${RUNNER_HOME}/_work" \
-    && chown -R runner:runner "${RUNNER_HOME}" /opt/rust
+    && chown -R runner:runner "${RUNNER_HOME}" /opt/rust "${PLAYWRIGHT_BROWSERS_PATH}"
 
 WORKDIR ${RUNNER_HOME}
 # Entrypoint bootstraps socket permissions as root, then drops to `runner`.
