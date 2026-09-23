@@ -1,0 +1,10 @@
+# Optional override for building the image from this checkout.
+services:
+  runner:
+    build:
+      context: .
+      args:
+        RUNNER_VERSION: ${RUNNER_VERSION:-2.328.0}
+        DOTNET_CHANNEL: ${DOTNET_CHANNEL:-10.0}
+        GO_VERSION: ${GO_VERSION:-1.26.5}
+        NODE_VERSION: ${NODE_VERSION:-26.5.1}

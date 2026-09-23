@@ -2,12 +2,13 @@
 
 ## Project Structure
 
-This repository builds and runs self-hosted GitHub Actions runners for the `cntryl` organization. It is intentionally small: `Dockerfile` defines the Ubuntu-based runner image and installed toolchains, `compose.yml` configures the service and replicas, and `entrypoint.sh` registers and starts each runner. `.env.example` documents local settings; copy it to the ignored `.env` file. There are currently no application source directories, test suites, or separate assets.
+This repository builds and runs self-hosted GitHub Actions runners for the `cntryl` organization. `Dockerfile` defines the Ubuntu-based runner image and installed toolchains, `compose.yml` runs the published GHCR image, `compose.build.yml` enables local builds, and `entrypoint.sh` registers and starts each runner. `.github/workflows/` contains CI and publishing workflows. `.env.example` documents local settings; copy it to the ignored `.env` file.
 
 ## Build and Development Commands
 
-- `docker compose build` builds the runner image using the versions configured in `.env` or Compose defaults.
-- `docker compose up --build -d` builds and starts the configured runner replicas.
+- `docker compose config --quiet` validates the published-image Compose setup.
+- `docker compose -f compose.yml -f compose.build.yml build` builds locally with versions configured in `.env` or Compose defaults.
+- `docker compose up -d` starts the published image; use both Compose files with `up --build -d` for a local build.
 - `docker compose logs -f runner` follows runner startup and job logs.
 - `docker compose down` stops and removes the Compose service.
 
@@ -19,7 +20,7 @@ Keep shell code compatible with Bash and use `set -euo pipefail` for scripts. Us
 
 ## Testing and Validation
 
-No automated test suite or formatter is configured. Before proposing changes, validate Compose syntax and configuration with `docker compose config`; for image or startup changes, build with `docker compose build`. Avoid running a live runner unless you have a valid organization token and intend to register it.
+No application test suite or formatter is configured. CI checks shell syntax, Compose configuration, and builds the image on GitHub-hosted runners. Container publishing builds each architecture on a native runner and merges their digests into a manifest. Run equivalent checks before proposing changes. Avoid running a live runner unless you have a valid organization token and intend to register it.
 
 ## Commits and Pull Requests
 

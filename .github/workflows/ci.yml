@@ -1,0 +1,27 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Check shell syntax
+        run: bash -n entrypoint.sh
+
+      - name: Validate published-image Compose configuration
+        run: docker compose config --quiet
+
+      - name: Validate local-build Compose configuration
+        run: docker compose -f compose.yml -f compose.build.yml config --quiet
+
+      - name: Build runner image
+        run: docker compose -f compose.yml -f compose.build.yml build
