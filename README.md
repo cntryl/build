@@ -83,7 +83,7 @@ The `.env` file is ignored by Git. Do not commit credentials.
 | `IMAGE_TAG` | Published GHCR image tag | `latest` |
 | `RUNNER_NAME` | Name assigned to each runner | Container hostname |
 | `RUNNER_LABELS` | Comma-separated labels advertised to workflow routing | `ubuntu-24.04` |
-| `RUNNER_VERSION` | GitHub Actions runner release installed in the image | `2.328.0` |
+| `RUNNER_VERSION` | GitHub Actions runner release installed in the image | `2.337.0` |
 | `DOTNET_CHANNEL` | .NET SDK release channel | `10.0` |
 | `GO_VERSION` | Go release installed in the image | `1.26.5` |
 | `NODE_VERSION` | Node.js release installed in the image | `26.5.1` |

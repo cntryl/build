@@ -4,7 +4,7 @@ services:
   runner:
     image: ghcr.io/cntryl/build:${IMAGE_TAG:-latest}
     deploy:
-      replicas: 2
+      replicas: 6
     environment:
       GITHUB_TOKEN:
       RUNNER_NAME:
